@@ -2,7 +2,7 @@ import synapseclient
 import synapseutils
 from synapseclient import Schema, Column, Table, Row, RowSet, as_table_columns
 import synapsebridgehelpers
-syn = synapseclient.login('BridgeExporter', 'NFfexdck')
+syn = synapseclient.login()
 
 #Copy Tremor Data
 #r = synapseutils.copy(syn, 'syn5734657', 'syn8443913')
