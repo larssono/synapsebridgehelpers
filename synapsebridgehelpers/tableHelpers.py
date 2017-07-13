@@ -1,4 +1,5 @@
 import pandas as pd
+from  multiprocessing.dummy import Pool 
 
 def get_tables(syn, projectId):
     """Returns all the tables in a projects as a dataFrame with 
@@ -24,3 +25,14 @@ def find_tables_with_data(syn, tables, healthCodes):
               synId in tables['table.id']]
     tables['healthCodeCounts'] = counts
     return tables
+
+def query_across_tables(syn, tables, query):
+    """Runs a query across a list of tables and returns a list of results
+    
+    param syn: a synapse object obtained through a syn.login()
+    param tables: a list of synapse ids
+    param query: a query with a unassigne string in the from clause. E.g. "select foo from %s" 
+
+    """
+    mp = Pool(8)
+    return mp.map(lambda synId: syn.tableQuery(query %synId), tables)
