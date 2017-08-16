@@ -5,7 +5,9 @@ from synapseutils.copy import copyFileHandles
 
 
 def tableWithFileIds(syn,table_id, extIdStr=''):
-    """ Returns a dict like {'df': dataFrame, 'cols': correspoding columns with tags} with actual fileHandleIds, also has an option to filter tables according to externalIDs which contain the string extIdStr """
+    """ Returns a dict like {'df': dataFrame, 'cols': correspoding columns with tags} with actual fileHandleIds, 
+    also has an option to filter tables according to externalIDs which contain the string extIdStr """
+    
     # Remove all duplicates and NaNs
     def removeDuplicatesAndNans(num_seq):
         num_seq_unique = pd.unique(num_seq)
@@ -13,7 +15,7 @@ def tableWithFileIds(syn,table_id, extIdStr=''):
         num_seq_unique = [int(x) for x in num_seq_unique]    
         return num_seq_unique
     
-    # Return corresponding newIds for a given fileIds_ according to a map(dict) idMap_ 
+    # Return corresponding newIds for a given fileIds_ according to a dict idMap_ 
     def fillIdsMap(fileIds_, idMap_):
         returnIds = []
         for index in range(0,len(fileIds_)):
@@ -33,8 +35,7 @@ def tableWithFileIds(syn,table_id, extIdStr=''):
         if col.columnType == 'FILEHANDLEID':
             cols_filehandleids.append({'name':col.name, 'id':col.id})
     
-
-    # To see if externalId was given as an input or not
+    # To see if externalId was given as an input or not, so as to query appropriately
     if extIdStr !='':
         # Given an external ID like, we will select those rows from the current table given its synapse ID
         results = syn.tableQuery('select * from '+ table_id +' where externalId like "' + extIdStr + '%"')
@@ -42,25 +43,25 @@ def tableWithFileIds(syn,table_id, extIdStr=''):
         # Given no extenal ID, we just tranfer all columns
         results = syn.tableQuery('select * from '+ table_id )
 
-
-    # Store the results as a dataframe
+    # Store the queried results as a dataframe
     df = results.asDataFrame()
     cols = synapseclient.as_table_columns(df)
 
-    # Change the type of columns that are FILEHANDLEIDs as calculated before
+    # Change the type of columns to FILEHANDLEIDs as calculated before
     for col in cols:
         for element in cols_filehandleids:
             if col.name == element['name']:
                 col.columnType = 'FILEHANDLEID'
                 col['id'] = element['id']
     
-    # Iterate for each element(column) that has columntype FILEHANDLEID 
+    # Iterate over each element(column) that has columntype FILEHANDLEID and assign corresponding actual fileHandleIds
     for element in cols_filehandleids:
         fileIds = (df[element['name']])
         fileIds = removeDuplicates(fileIds)
         len_fIds = len(fileIds)
         newIds = []
-
+        
+        # The check for 100 because, copyFileHandles cannot handle more than 100 queries
         if len_fIds <= 100:
             tempIds = copyFileHandles(syn, fileIds, ['TableEntity']*len_fIds,[table_id]*len_fIds, [None]*len_fIds, [None]*len_fIds)
             tempIds = [x['newFileHandle']['id'] for x in tempIds['copyResults']]
@@ -75,9 +76,14 @@ def tableWithFileIds(syn,table_id, extIdStr=''):
                 tempIds = [x['newFileHandle']['id'] for x in tempIds['copyResults']]
                 newIds = newIds + tempIds
                 start_pos = start_pos+100
-
+        
+        # Create a dict of fileIds vs newIds
         idMap = dict(zip([str(x) for x in fileIds],newIds))
+        
+        # Map the dict and find the actual newIds
         newIds = fillIdsMap(df[element['name']], idMap)
+        
+        # Assign the new Ids to the corresponding column
         df[element['name']] = newIds
     
     return {'df' : df, 'cols' : cols}
