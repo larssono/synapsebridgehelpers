@@ -6,6 +6,7 @@ def get_tables(syn, projectId):
     
     tables = syn.chunkedQuery('select name,id from table where projectId=="%s"' %projectId)
     tables = pd.DataFrame(list(tables))
+    # removing tables named 'parkinson-status' and 'parkinson-appVersion'
     tables = tables[(tables['table.name']!='parkinson-status') &(tables['table.name']!='parkinson-appVersion')]
     names = [name.replace('parkinson-', '').replace('Parkinsons-', '').replace('Activity-', '')
              for name in tables['table.name']]
