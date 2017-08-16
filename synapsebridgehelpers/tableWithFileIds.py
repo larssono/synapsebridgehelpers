@@ -57,7 +57,7 @@ def tableWithFileIds(syn,table_id, extIdStr=''):
     # Iterate over each element(column) that has columntype FILEHANDLEID and assign corresponding actual fileHandleIds
     for element in cols_filehandleids:
         fileIds = (df[element['name']])
-        fileIds = removeDuplicates(fileIds)
+        fileIds = removeDuplicatesAndNans(fileIds)
         len_fIds = len(fileIds)
         newIds = []
         
