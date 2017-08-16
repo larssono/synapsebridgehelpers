@@ -1,2 +1,2 @@
 from .tableHelpers import *
-from findHealthCodes import *
+from .findHealthCodes import *
