@@ -7,7 +7,7 @@ from collections import Counter
 import matplotlib.pylab as plt
 from datetime import datetime
 
-def healthCodeRecords(table_id, returnType = 'series'):
+def healthCodeRecords(df, returnType = 'series'):
     """returns number of records per healthCode """
     try:
         sortedSeries = df['healthCode'].value_counts()        
