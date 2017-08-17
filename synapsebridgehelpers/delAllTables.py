@@ -1,7 +1,7 @@
 import pandas as pd
 
 def delAllTables(syn,projectId):
-
+    """ Deletes all tables in a given project """
     all_tables = syn.getChildren(projectId,includeTypes=[u'table'],sortBy=u'NAME', sortDirection=u'ASC')
     df_table = pd.DataFrame(all_tables)
     
