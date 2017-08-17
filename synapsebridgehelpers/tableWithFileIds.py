@@ -55,7 +55,6 @@ def tableWithFileIds(syn,table_id, extIdStr=''):
         for element in cols_filehandleids:
             if col.name == element['name']:
                 col.columnType = 'FILEHANDLEID'
-                col['id'] = element['id']
     
     # Iterate for each element(column) that has columntype FILEHANDLEID 
     for element in cols_filehandleids:
@@ -82,6 +81,7 @@ def tableWithFileIds(syn,table_id, extIdStr=''):
         idMap = dict(zip([str(x) for x in fileIds],newIds))
         newIds = fillIdsMap(df[element['name']], idMap)
         df[element['name']] = newIds
+   
     
     return {'df' : df, 'cols' : cols}
 
