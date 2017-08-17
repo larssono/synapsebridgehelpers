@@ -2,12 +2,21 @@ import synapseclient
 import numpy as np
 import pandas as pd
 from synapsebridgehelpers import tableWithFileIds
-from groupTableActivity import groupTableActivity
+from synapsebridgehelpers import groupTableActivity
+
+
+def storeTable(syn,df, schema, provenance=''):
+    table = synapseclient.Table(schema, df)
+    table = syn.store(table)
+
+    if provenance != '':
+        table = syn.setProvenance(table.schema.id , activity = synapseclient.activity.Activity(used = provenance))
 
 def transferTables(syn,sourceProjId, uploadProjId, extId_Str = ''):
     
     # List of tables sorted by activity(as defined in groupTabActivity)
     tables_list = groupTableActivity(syn,sourceProjId,extId_Str)
+    all_tables = groupTableActivity(syn,sourceProjId)
 
     # Iterate over each specific activity - specAct in tables_list
     for activity_ in tables_list:
@@ -27,11 +36,8 @@ def transferTables(syn,sourceProjId, uploadProjId, extId_Str = ''):
             df_main = df_main.append(df)
         
         # Correcting the order of the columns while uploading
-        temp_cols = df_main.columns.tolist()
-        df_main = df_main[temp_cols]
+        df_main = df_main[df_main.columns]
         
         # Updaing schema and uploading
         schema = synapseclient.Schema(name=activity_ +' extIdStr_' + extId_Str, columns=cols, parent=uploadProjId)
-        table = synapseclient.Table(schema, df_main)
-        table = syn.store(table)
-        table = syn.setProvenance(table.schema.id , activity = synapseclient.activity.Activity(used = tables_list[activity_]))
+        storeTable(syn,df_main,schema,all_tables[activity_])
