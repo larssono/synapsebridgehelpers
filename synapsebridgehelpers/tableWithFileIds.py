@@ -3,9 +3,10 @@ import numpy as np
 import pandas as pd
 from synapseutils.copy import copyFileHandles
 
-
 def tableWithFileIds(syn,table_id, extIdStr=''):
-    """ Returns a dict like {'df': dataFrame, 'cols': correspoding columns with tags} with actual fileHandleIds, also has an option to filter tables according to externalIDs which contain the string extIdStr """
+    """ Returns a dict like {'df': dataFrame, 'cols': correspoding columns with tags} with actual fileHandleIds, 
+    also has an option to filter tables according to externalIDs which contain the string extIdStr """
+    
     # Remove all duplicates and NaNs
     def removeDuplicatesAndNans(num_seq):
         if len(num_seq) == 0:
@@ -62,7 +63,9 @@ def tableWithFileIds(syn,table_id, extIdStr=''):
         fileIds = removeDuplicatesAndNans(fileIds)
         len_fIds = len(fileIds)
         newIds = []
-
+    
+        # The check for 100 is because copyFileHandles cannot handle more than 100 requests at a time
+        # The check for 0 is for empty colunms
         if len_fIds <= 100 and len_fIds>0:
             tempIds = copyFileHandles(syn, fileIds, ['TableEntity']*len_fIds,[table_id]*len_fIds, [None]*len_fIds, [None]*len_fIds)
             tempIds = [x['newFileHandle']['id'] for x in tempIds['copyResults']]
@@ -77,7 +80,8 @@ def tableWithFileIds(syn,table_id, extIdStr=''):
                 tempIds = [x['newFileHandle']['id'] for x in tempIds['copyResults']]
                 newIds = newIds + tempIds
                 start_pos = start_pos+100
-
+        
+        # Map the fileIds to corresponding newIds
         idMap = dict(zip([str(x) for x in fileIds],newIds))
         newIds = fillIdsMap(df[element['name']], idMap)
         df[element['name']] = newIds
