@@ -4,31 +4,26 @@ import pandas as pd
 from synapsebridgehelpers import tableWithFileIds
 from synapsebridgehelpers import groupTableActivity
 
-
-def storeTable(syn,df, schema, provenance=''):
-    table = synapseclient.Table(schema, df)
-    table = syn.store(table)
-
-    if provenance != '':
-        table = syn.setProvenance(table.schema.id , activity = synapseclient.activity.Activity(used = provenance))
-
 def transferTables(syn,sourceProjId, uploadProjId, extId_Str = ''):
-    
-    # List of tables sorted by activity(as defined in groupTabActivity)
+""" This function transfers tables from a source project to the upload project (target project)
+sorted by external Ids which contain extId_Str """
+
+    # List of tables sorted by activity as defined in groupTableActivity, which is based on get_tables from
+    # synapsebridgehelper.tableHelpers
     tables_list = groupTableActivity(syn,sourceProjId,extId_Str)
     all_tables = groupTableActivity(syn,sourceProjId)
 
-    # Iterate over each specific activity - specAct in tables_list
+    # Iterate over each activity in tables_list
     for activity_ in tables_list:
         print(activity_)
         
-        # list of all table ids corresponding to activity 
+        # list of all table ids corresponding to that activity 
         activityTableIds = tables_list[activity_]
         result = tableWithFileIds(syn,table_id = activityTableIds[0], extIdStr = extId_Str)
         df_main = result['df']
         cols = result['cols']
         
-        # appending the rest of the sorted tables if they exist
+        # appending the rest of the sorted tables corresponding to that activity if they exist
         for table_index in range(1, len(activityTableIds)):
             result = tableWithFileIds(syn,table_id = activityTableIds[table_index], extIdStr = extId_Str)
             df = result['df']
@@ -40,4 +35,6 @@ def transferTables(syn,sourceProjId, uploadProjId, extId_Str = ''):
         
         # Updaing schema and uploading
         schema = synapseclient.Schema(name=activity_ +' extIdStr_' + extId_Str, columns=cols, parent=uploadProjId)
-        storeTable(syn,df_main,schema,all_tables[activity_])
+        table = synapseclient.Table(schema, df)
+        table = syn.store(table)
+        table = syn.setProvenance(table.schema.id , activity = synapseclient.activity.Activity(used = all_tables[activity_]))
