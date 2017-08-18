@@ -35,6 +35,6 @@ def transferTables(syn,sourceProjId, uploadProjId, extId_Str = ''):
         
         # Updaing schema and uploading
         schema = synapseclient.Schema(name=activity_ +' extIdStr_' + extId_Str, columns=cols, parent=uploadProjId)
-        table = synapseclient.Table(schema, df)
+        table = synapseclient.Table(schema, df_main)
         table = syn.store(table)
         table = syn.setProvenance(table.schema.id , activity = synapseclient.activity.Activity(used = all_tables[activity_]))
