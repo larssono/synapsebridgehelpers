@@ -1,4 +1,4 @@
-%matplotlib inline
+#%matplotlib inline (This is for ipython notebook)
 
 import synapseclient
 import pandas as pd
