@@ -68,7 +68,7 @@ def plotRecordDistribution(syn, table_id, timeline = 'month'):
     try:
         
         # Get the uploadDates
-        uploadDate = df['uploadDate']
+        uploadDate = df['uploadDate'].dropna()
         uploadDate = list(uploadDate)
         uploadDate.sort()
         
@@ -139,6 +139,7 @@ def plotRecordsVsDaysSinceEnrollment(syn,table_id,stepsize = 10):
     # Fetch the table from synapse
     results = syn.tableQuery('SELECT * FROM ' + table_id)
     df =  results.asDataFrame()
+    df = df.dropna(subset = ['uploadDate']) # Dropping those rows with NaN values in uploadDate
 
     try:
         # generating list of healthcodes vs upload dates associated with that healthcode
