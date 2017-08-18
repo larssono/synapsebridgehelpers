@@ -5,7 +5,7 @@ from synapsebridgehelpers import tableWithFileIds
 from synapsebridgehelpers import groupTableActivity
 
 def transferTables(syn,sourceProjId, uploadProjId, extId_Str = ''):
-""" This function transfers tables from a source project to the upload project (target project) 
+    """ This function transfers tables from a source project to the upload project (target project) 
     sorted by external Ids which contain extId_Str """
 
     # List of tables sorted by activity as defined in groupTableActivity, which is based on get_tables from
