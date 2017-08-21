@@ -57,7 +57,7 @@ def plotRecordsVsHealthCodes(syn, table_id, nbins = 10, scale = 'linear'):
 ###########################################################################################
 # Distribution of records over time of upload
 
-def plotRecordDistribution(syn, table_id, timeline = 'month'):
+def plotRecordDistribution(syn, table_id, timeline = 'M'):
     """plots records distribution according to timeline specified, options include
     'month', 'date', 'year', given the date is of the form yyyy-mm-dd"""
     
@@ -66,53 +66,40 @@ def plotRecordDistribution(syn, table_id, timeline = 'month'):
     df =  results.asDataFrame()
 
     try:
-        
-        # Get the uploadDates
-        uploadDate = df['uploadDate'].dropna()
-        uploadDate = list(uploadDate)
-        uploadDate.sort()
-        
+        # Get the uploadDates and make em' a dataframe
+        uploadDate = pd.DataFrame()
+        datesDroppedNa = df['uploadDate'].dropna()
+        uploadDate['date'] = pd.to_datetime(datesDroppedNa)
+        uploadDate.index = uploadDate['date']
+        uploadDate['score'] = 1 # one score to each upload
+
         # Converting the uploadDate to the format of required frequency of sampling (month, day or year)
-        if timeline == 'month':
-            for index in range(0,len(uploadDate)):
-                uploadDate[index] = uploadDate[index][0:-3]
-        elif timeline == 'year':
-            for index in range(0, len(uploadDate)):
-                uploadDate[index] = uploadDate[index][0:4]
-        elif timeline != 'date':
-            print('unidentified timeline specified, reverting to default timline by month')
-            timeline = 'month'
-            for index in range(0,len(uploadDate)):
-                uploadDate[index] = uploadDate[index][0:-3]
-        
-        
-        ######################################################################################
-        # I did not use pd.series.resample here as I was unable to implement it on this data #
-        # even after trying to convert it into datetime format using pd.index.to_datetime    # 
-        # if someone can solve this, it would be great !                                     #
-        ######################################################################################
-                
-        # timeperiod vs number of occurances of that, using inbuilt Counter from collections module
-        uploadDateCounts = Counter(uploadDate)
-        
-        # Convert into two separate lists for plotting purposes
-        time_period, numberOfCounts = zip(*uploadDateCounts.items())
-        
+        resampled_dates = uploadDate.resample(timeline).sum()
+        resampled_dates_plot_ticks = list(resampled_dates.index)
+
         # plotting stuff
-        x_pos = np.arange(len(time_period))
+        x_pos = np.arange(len(resampled_dates))
         plt.figure(figsize=(16,9))
-        plt.bar(x_pos,numberOfCounts)
-        if timeline == 'date':
-            plt.xticks(x_pos[0:len(x_pos):10],time_period[0:len(x_pos):10], rotation = 'vertical')
-        else:
-            plt.xticks(x_pos,time_period, rotation = 'vertical')        
+        plt.bar(x_pos,resampled_dates['score'])
+        if timeline == 'D':
+            resampled_dates_plot_ticks = [x.strftime('%d %B %Y') for x in resampled_dates_plot_ticks]
+            plt.xticks(x_pos[0:len(x_pos):10],resampled_dates_plot_ticks[0:len(x_pos):10], rotation = 'vertical')
+            timeline = 'Day' 
+        elif timeline == 'W':
+            resampled_dates_plot_ticks = [x.strftime('%d %B %Y') for x in resampled_dates_plot_ticks]
+            plt.xticks(x_pos,resampled_dates_plot_ticks, rotation = 'vertical')
+            timeline = 'Week'             
+        else:    
+            resampled_dates_plot_ticks = [x.strftime('%B %Y') for x in resampled_dates_plot_ticks]
+            plt.xticks(x_pos,resampled_dates_plot_ticks, rotation = 'vertical')
+            timeline = 'month'
         plt.xlabel(timeline, fontsize = 15)
         plt.ylabel('Number of submissions', fontsize = 15)
         plt.title('Submissions per ' + timeline, fontsize = 18)
         plt.xticks(fontsize = 12)
         plt.yticks(fontsize = 12)
         plt.show()
-    
+
     except:
         print('Given table does not have column uploadDate')
     
