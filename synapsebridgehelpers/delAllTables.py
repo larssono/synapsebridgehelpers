@@ -1,7 +1,10 @@
 import pandas as pd
 
 def delAllTables(syn,projectId):
-    """Deletes All tables in a given project"""
+    """Deletes All tables in a given project
+     Arguments:
+    - syn: a Synapse client object
+    - projectID: synapse ID of the project we want to delete the files in"""
     all_tables = syn.getChildren(projectId,includeTypes=[u'table'],sortBy=u'NAME', sortDirection=u'ASC')
     df_table = pd.DataFrame(all_tables)
     
