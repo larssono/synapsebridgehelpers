@@ -2,8 +2,12 @@ import pandas as pd
 
 def get_tables(syn, projectId, simpleNameFilters=[]):
     """Returns all the tables in a projects as a dataFrame with 
-    columns for synapseId, table names, Version and Simplified Name. Inputs
-    are syn, projectId and simpleNameFilters i.e the strings that are to be 
+    columns for synapseId, table names, Version and Simplified Name
+    
+     Arguments:
+    - syn: a Synapse client object
+    - projectId: Synapse ID of the project we want tables from
+    - simpleNameFilters: the strings that are to be 
     filtered out from the table names to create a simple name"""
     
     tables = syn.chunkedQuery('select name,id from table where projectId=="%s"' %projectId)
