@@ -4,7 +4,14 @@ import synapsebridgehelpers
 def groupTableActivity(syn,sourceProjId, extIdStr = '', activityNameFilters=[]):
     """ Groups all table versions according to corresponding activities, 
     has option to find tables with certain externalIds. activityNameFilters is used 
-    to remove the unneccesary strings in table names before grouping them together """
+    to remove the unneccesary strings in table names before grouping them together 
+    
+    Arguments:
+    - syn: a Synapse client object
+    - sourceprojectId: Synapse Id of the project we want to group the tables in
+    - extIdStr: the string the externalIds we are looking for should contain, is optional
+    - activityNameFilters: list of strings to remove in the table names before grouping them
+      together"""
     
     all_tables = synapsebridgehelpers.get_tables(syn,sourceProjId,activityNameFilters)
     table_activities = dict(all_tables.groupby(by='simpleName')['table.id'].apply(list))
