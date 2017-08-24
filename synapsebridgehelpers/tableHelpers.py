@@ -1,15 +1,19 @@
 import pandas as pd
 
-def get_tables(syn, projectId):
+def get_tables(syn, projectId, simpleNameFilters=[]):
     """Returns all the tables in a projects as a dataFrame with 
-    columns for synapseId, table names and simplified Name."""
+    columns for synapseId, table names, Version and Simplified Name. Inputs
+    are syn, projectId and simpleNameFilters i.e the strings that are to be 
+    filtered out from the table names to create a simple name"""
     
     tables = syn.chunkedQuery('select name,id from table where projectId=="%s"' %projectId)
     tables = pd.DataFrame(list(tables))
     tables = tables[(tables['table.name']!='parkinson-status') &(tables['table.name']!='parkinson-appVersion')]
-    names = [name.replace('parkinson-', '').replace('Parkinsons-', '').replace('Activity-', '')
-             for name in tables['table.name']]
-    tables['simpleName']=names
+    tables['version'] = tables['table.name'].str.extract('(.)(-v\d+)', expand=True)[1]
+    names = tables['table.name'].str.extract('([ -_a-z-A-Z\d]+)(-v\d+)',expand=True)[0]
+    for word in simpleNameFilters:
+        names = [name.replace(word,'') for name in names]
+    tables['simpleName'] = names     
     return tables 
 
 def find_tables_with_data(syn, tables, healthCodes):
