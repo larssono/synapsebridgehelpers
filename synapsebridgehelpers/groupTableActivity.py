@@ -19,18 +19,9 @@ def groupTableActivity(syn,sourceProjId, extIdStr = '', activityNameFilters=[]):
     if extIdStr == '':
         return table_activities
     else:
-        temp_table_activities = {}           
-        for element in table_activities:
-            table_ids_activity = table_activities[element]
-            for table_id in table_ids_activity:
-                results = syn.tableQuery('select * from '+ table_id +' where externalId like "' + extIdStr + '%"')
-                df = results.asDataFrame()
-                if df.shape[0]*df.shape[1] > 0:
-                    if element in temp_table_activities:
-                        temp_table_activities[element].append(table_id)
-                    else:
-                        temp_table_activities[element] = [table_id]
-                    
-        table_activities = temp_table_activities
-        
-    return table_activities
+        res = synapsebridgehelpers.externalIds2healthCodes(syn,list(all_tables['table.id']))
+        res = res[res['externalId'].str.contains(extIdStr)]
+        res = synapsebridgehelpers.find_tables_with_data(syn=syn, healthCodes=res['healthCode'], tables=all_tables)
+        res = res[res['healthCodeCounts']>0]
+        table_activities = dict(res.groupby(by='simpleName')['table.id'].apply(list))
+        return table_activities
