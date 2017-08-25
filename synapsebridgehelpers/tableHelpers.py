@@ -12,6 +12,7 @@ def get_tables(syn, projectId, simpleNameFilters=[]):
     
     tables = syn.chunkedQuery('select name,id from table where projectId=="%s"' %projectId)
     tables = pd.DataFrame(list(tables))
+    # removing tables named 'parkinson-status' and 'parkinson-appVersion'
     tables = tables[(tables['table.name']!='parkinson-status') &(tables['table.name']!='parkinson-appVersion')]
     tables['version'] = tables['table.name'].str.extract('(.)(-v\d+)', expand=True)[1]
     names = tables['table.name'].str.extract('([ -_a-z-A-Z\d]+)(-v\d+)',expand=True)[0]
