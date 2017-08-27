@@ -1,8 +1,3 @@
-
-# coding: utf-8
-
-# In[ ]:
-
 import synapsebridgehelpers
 import synapseclient
 import pandas as pd
@@ -31,6 +26,8 @@ def summaryTable(syn, projectId, columns = []):
     for table_id in all_tables['table.id']:
         df = syn.tableQuery('select ' +columns_str+' from '+ table_id)
         df = df.asDataFrame()
+        schema = syn.get(table_id)
+        df['originalTableName'] = [schema.name for count in range(0,df.shape[0])]
+        df['originalTableId'] = [schema.id for count in range(0,df.shape[0])]
         df_main = pd.concat([df_main,df])
     return df_main
-
