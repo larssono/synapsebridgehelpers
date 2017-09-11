@@ -10,7 +10,11 @@ from datetime import datetime
 ###########################################################################################
 
 def healthCodeRecords(df, returnType = 'series'):
-    """returns number of records per healthCode """
+    """returns number of records per healthCode 
+    
+    Arguments:
+    - df: a dataFrame containing the column healthCode
+    - returnType: default is pandas.series, any other input will return a dict"""
     try:
         sortedSeries = df['healthCode'].value_counts()        
         if returnType == 'series':
@@ -22,12 +26,16 @@ def healthCodeRecords(df, returnType = 'series'):
         
 ###########################################################################################        
         
-def plotRecordsVsHealthCodes(syn, table_id, nbins = 10, scale = 'linear'):
+def plotRecordsVsHealthCodes(df, nbins = 10, scale = 'linear'):
     """Plots the number of records vs the number of healthcodes that have that 
-    many records"""
+    many records
+    
+    Arguments:
+    - df: a dataFrame containing the columns recordId and healthCode
+    - nbins: number of bins in the histogram plot
+    - scale: 'linear' for linear scale axes, 'log' for log scale axes
+    """
     try:
-        results = syn.tableQuery('SELECT healthCode,recordId FROM ' + table_id)
-        df =  results.asDataFrame()
         plt.figure(figsize = (16,9))
         df.groupby('healthCode')['recordId'].count().hist(bins = nbins)
         plt.xlabel('#records', fontsize = 15)
@@ -44,14 +52,15 @@ def plotRecordsVsHealthCodes(syn, table_id, nbins = 10, scale = 'linear'):
 ###########################################################################################
 # Distribution of records over time of upload
 
-def plotRecordDistribution(syn, table_id, timeline = 'M'):
+def plotRecordDistribution(df, timeline = 'M'):
     """plots records distribution according to timeline specified, options include
-    'month', 'date', 'year', given the date is of the form yyyy-mm-dd"""
+    'month', 'date', 'year', given the date is of the form yyyy-mm-dd
     
-    # Fetch the table from synapse
-    results = syn.tableQuery('SELECT uploadDate FROM ' + table_id)
-    df =  results.asDataFrame()
-
+    Arguments:
+    - df: a dataFrame containing the column 'uploadDate'
+    - timeline: the unit of time on the time axis {'M':Month, 'W': Week, 'D':Day}
+    """
+    
     try:
         # Get the uploadDates and make em' a dataframe
         uploadDate = pd.DataFrame()
@@ -92,10 +101,15 @@ def plotRecordDistribution(syn, table_id, timeline = 'M'):
 ###########################################################################################
 
 # Number of records vs Days since enrollment
-def plotRecordsVsDaysSinceEnrollment(syn,table_id,stepsize = 10):
+def plotRecordsVsDaysSinceEnrollment(df,stepsize = 10):
     
     """Plots the number of records vs days since enrollment, by normalizing the submissions per healthcode according
-    to the date they joined the study"""
+    to the date they joined the study
+    
+    Arguments:
+    - df: a dataFrame containing the columns 'healthCode' and 'uploadDate'
+    - stepsize: the number of days for each tick on the time axis
+    """
 
     # Number of days passed between two dates
     def daysPassed(beforeDate, afterDate):
@@ -109,9 +123,7 @@ def plotRecordsVsDaysSinceEnrollment(syn,table_id,stepsize = 10):
         delta = b - a
         return delta.days 
     
-    # Fetch the table from synapse
-    results = syn.tableQuery('SELECT healthCode,uploadDate FROM ' + table_id)
-    df =  results.asDataFrame()
+    # Dropping Nas
     df = df.dropna(subset = ['uploadDate']) # Dropping those rows with NaN values in uploadDate
 
     try:

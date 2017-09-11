@@ -8,37 +8,45 @@ def transferTables(syn,sourceProjId, uploadProjId, extId_Str = '', simpleNameFil
     sorted by external Ids which contain extId_Str, group tables with simpleNameFilters, also can filter
     tables by healthcodes and then group by activity"""
 
-    # List of tables sorted by activity as defined in groupTableActivity, which is based on get_tables from
-    # synapsebridgehelper.tableHelpers
-    all_tables = synapsebridgehelpers.groupTableActivity(syn,sourceProjId, activityNameFilters = simpleNameFilters)
+    # List of tables sorted by get_tables from synapsebridgehelper.tableHelpers
+    all_tables = synapsebridgehelpers.get_tables(syn,sourceProjId,simpleNameFilters)
+    
+    # Converting externalIds to healthCodes
     if extId_Str != '':
-        all_tables_list = []
-        for activity in all_tables:
-            all_tables_list = all_tables_list + all_tables[activity]
-        res = synapsebridgehelpers.externalIds2healthCodes(syn,all_tables_list)
+        res = synapsebridgehelpers.externalIds2healthCodes(syn,list(all_tables['table.id']))
         res = res[res['externalId'].str.contains(extId_Str)]
         healthCodeList = list(res['healthCode'])
         extId_Str = ''
 
-    tables_list = synapsebridgehelpers.groupTableActivity(syn, sourceProjId, activityNameFilters = simpleNameFilters, healthCodes = healthCodeList)        
-    
+    tables_list = synapsebridgehelpers.filterTablesByActivity(syn, all_tables, healthCodes = healthCodeList)            
+        
+    # Converting all_tables to dict, will be used to set Provenance while uploading the table
+    all_tables = dict(all_tables.groupby(by='simpleName')['table.id'].apply(list))    
+
     # Iterate over each activity in tables_list
     for activity_ in tables_list:
         print(activity_)
         
         # list of all table ids corresponding to that activity 
         activityTableIds = tables_list[activity_]
-        result = synapsebridgehelpers.tableWithFileIds(syn,table_id = activityTableIds[0], healthcodes = healthCodeList)
-        df_main = result['df']
-        cols = result['cols']
+        df_list = []
+        cols_filehandleid = []
         
         # appending the rest of the sorted tables corresponding to that activity if they exist
-        for table_index in range(1, len(activityTableIds)):
+        for table_index in range(0, len(activityTableIds)):
             result = synapsebridgehelpers.tableWithFileIds(syn,table_id = activityTableIds[table_index], healthcodes = healthCodeList)
-            df = result['df']
-            cols = result['cols']
-            df_main = pd.concat([df_main, df])
-
+            cols_filehandleid = cols_filehandleid + list(set(result['cols']) - set(cols_filehandleid))
+            df_list.append(result['df'])
+            
+        df_main = pd.concat(df_list)
+        cols = synapseclient.as_table_columns(df_main)
+        
+        # Change the type of columns that are FILEHANDLEIDs as calculated before
+        for col in cols:
+            for element in cols_filehandleid:
+                if col.name == element:
+                    col.columnType = 'FILEHANDLEID'
+                    
         # If different datatypes happen while merging tables this will change the column type in the resulting dataframe
         # The following code sets it right and casts the data into its original form / form that syn.store would accept
         # (for FILEHANDLEID type columns, the input needs to be an integer)
@@ -51,7 +59,7 @@ def transferTables(syn,sourceProjId, uploadProjId, extId_Str = '', simpleNameFil
                 df_main[col.name] = [int(item) if (item!='' and item==item) else '' for item in df_main[col.name]]
             else:
                 df_main[col.name] = [item if item==item else '' for item in df_main[col.name]]
-        
+
         # Correcting the order of the columns while uploading
         df_main = df_main[[col.name for col in cols]]
         
