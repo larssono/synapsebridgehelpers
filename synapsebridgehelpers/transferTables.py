@@ -8,7 +8,7 @@ def transferTables(syn,sourceProjId, uploadProjId, extId_Str = '', simpleNameFil
     sorted by external Ids which contain extId_Str, group tables with simpleNameFilters, also can filter
     tables by healthcodes and then group by activity"""
 
-    # List of tables sorted by get_tables from synapsebridgehelper.tableHelpers
+    # dataframe of all tables using get_tables from synapsebridgehelper.tableHelpers
     all_tables = synapsebridgehelpers.get_tables(syn,sourceProjId,simpleNameFilters)
     
     # Converting externalIds to healthCodes
@@ -17,7 +17,8 @@ def transferTables(syn,sourceProjId, uploadProjId, extId_Str = '', simpleNameFil
         res = res[res['externalId'].str.contains(extId_Str)]
         healthCodeList = list(res['healthCode'])
         extId_Str = ''
-
+    
+    # List of tables sorted by activity and filtered using healthcodes
     tables_list = synapsebridgehelpers.filterTablesByActivity(syn, all_tables, healthCodes = healthCodeList)            
         
     # Converting all_tables to dict, will be used to set Provenance while uploading the table
@@ -27,17 +28,17 @@ def transferTables(syn,sourceProjId, uploadProjId, extId_Str = '', simpleNameFil
     for activity_ in tables_list:
         print(activity_)
         
-        # list of all table ids corresponding to that activity 
-        activityTableIds = tables_list[activity_]
-        df_list = []
-        cols_filehandleid = []
+        activityTableIds = tables_list[activity_]  # list of all table ids corresponding to that activity 
+        df_list = []                               # list of dataframes corresponding to that activity
+        cols_filehandleid = []                     # list of columns that have type FILEHANDLEID across all dataframes
         
-        # appending the rest of the sorted tables corresponding to that activity if they exist
+        # looping over all tables corresponding to that activity
         for table_index in range(0, len(activityTableIds)):
             result = synapsebridgehelpers.tableWithFileIds(syn,table_id = activityTableIds[table_index], healthcodes = healthCodeList)
             cols_filehandleid = cols_filehandleid + list(set(result['cols']) - set(cols_filehandleid))
             df_list.append(result['df'])
             
+        # Concatenating all tables to form one table for the activity    
         df_main = pd.concat(df_list)
         cols = synapseclient.as_table_columns(df_main)
         
