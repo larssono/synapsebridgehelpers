@@ -30,7 +30,7 @@ def transferTables(syn,sourceProjId, uploadProjId, extId_Str = '', simpleNameFil
         
         activityTableIds = tables_list[activity_]  # list of all table ids corresponding to that activity 
         df_list = []                               # list of dataframes corresponding to that activity
-        cols_filehandleid = []                     # list of columns that have type FILEHANDLEID across all dataframes
+        cols_filehandleid = []                     # list of columns that have type FILEHANDLEID across all dataframes for that activity
         
         # looping over all tables corresponding to that activity
         for table_index in range(0, len(activityTableIds)):
