@@ -20,7 +20,7 @@ def summaryTable(syn, projectId, columns = []):
     df_list = []
     columns_str = ','.join(columns)
     # Change the line below to edit default columns
-    columns_str_default = 'appVersion,phoneInfo,uploadDate,healthCode,externalId,dataGroups,createdOn,createdOnTimeZone,userSharingScope'
+    columns_str_default = 'recordId,healthCode,externalId,uploadDate'
     columns_str = columns_str_default if columns_str == '' else columns_str # If empty then we choose default columns
     for table_id in all_tables['table.id']:
         df = syn.tableQuery('select %s from %s' %(columns_str,table_id))
