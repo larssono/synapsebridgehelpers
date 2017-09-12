@@ -6,7 +6,11 @@ from synapseutils.copy import copyFileHandles
 def copyFileIdsInBatch(syn,table_id,fileIds):
     """Outputs a dict(map) of the given fileId list to the output of copyFileHandles
     Will drop nas in the input fileIds, returns an empty map if the column is
-    NOT of type FILEHANDLEID"""
+    NOT of type FILEHANDLEID
+    
+    Remove/Edit this once copyFileHandles can process requests more than 100 at once
+    Change tableWithFileIds appropriately
+    """
     
     fileIds = fileIds.dropna().drop_duplicates().astype(int)
     len_fIds = len(fileIds)
