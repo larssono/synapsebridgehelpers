@@ -2,7 +2,7 @@ import synapsebridgehelpers
 import synapseclient
 import pandas as pd
 
-def summaryTable(syn, projectId, columns = []):
+def summaryTable(syn, projectId, columns = ['appVersion','phoneInfo','uploadDate','healthCode','externalId','dataGroups','createdOn','createdOnTimeZone','userSharingScope']):
     """Outputs a concatenated table containing the given
     list of columns from the given projectId. If no columns 
     are given, then all columns are considered
@@ -18,11 +18,10 @@ def summaryTable(syn, projectId, columns = []):
     
     all_tables = synapsebridgehelpers.get_tables(syn, projectId)
     df_list = []
-    columns_str = ','.join(columns)
-    # Change the line below to edit default columns
-    columns_str_default = 'recordId,healthCode,externalId,uploadDate'
-    columns_str = columns_str_default if columns_str == '' else columns_str # If empty then we choose default columns
     for table_id in all_tables['table.id']:
+        table_columns =[str(col.name) for col in syn.getTableColumns(table_id)]
+        available_columns = list(set(columns).intersection(table_columns))
+        columns_str = ','.join(available_columns)
         df = syn.tableQuery('select %s from %s' %(columns_str,table_id))
         df = df.asDataFrame()
         schema = syn.get(table_id)
