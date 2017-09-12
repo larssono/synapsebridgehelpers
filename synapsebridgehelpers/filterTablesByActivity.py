@@ -12,9 +12,8 @@ def filterTablesByActivity(syn, tables, healthCodes = None):
         
     if healthCodes == None:
         table_activities = dict(tables.groupby(by='simpleName')['table.id'].apply(list))
-        return table_activities
     else:
         res = synapsebridgehelpers.find_tables_with_data(syn=syn, healthCodes=healthCodes, tables=tables)
         res = res[res['healthCodeCounts']>0]
         table_activities = dict(res.groupby(by='simpleName')['table.id'].apply(list))
-        return table_activities
+    return table_activities
