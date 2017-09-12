@@ -16,21 +16,14 @@ def transferTables(syn,sourceProjId, uploadProjId, extId_Str = '', simpleNameFil
         res = synapsebridgehelpers.externalIds2healthCodes(syn,list(all_tables['table.id']))
         res = res[res['externalId'].str.contains(extId_Str)]
         healthCodeList = list(res['healthCode'])
-        extId_Str = ''
     
     # List of tables sorted by activity and filtered using healthcodes
-    tables_list = synapsebridgehelpers.filterTablesByActivity(syn, all_tables, healthCodes = healthCodeList)            
-        
-    # Converting all_tables to dict, will be used to set Provenance while uploading the table
-    all_tables = dict(all_tables.groupby(by='simpleName')['table.id'].apply(list))    
+    tables_dict = synapsebridgehelpers.filterTablesByActivity(syn, all_tables, healthCodes = healthCodeList)            
 
-    # Iterate over each activity in tables_list
-    for activity_ in tables_list:
-        print(activity_)
-        
-        activityTableIds = tables_list[activity_]  # list of all table ids corresponding to that activity 
-        df_list = []                               # list of dataframes corresponding to that activity
-        cols_filehandleid = []                     # list of columns that have type FILEHANDLEID across all dataframes for that activity
+    # Iterate over each activity in tables_dict
+    for activity_,activityTableIds in tables_dict.items():
+        df_list = []                       # list of dataframes corresponding to that activity
+        cols_filehandleid = []             # list of columns that have type FILEHANDLEID across all dataframes for that activity
         
         # looping over all tables corresponding to that activity
         for table_index in range(0, len(activityTableIds)):
@@ -44,9 +37,8 @@ def transferTables(syn,sourceProjId, uploadProjId, extId_Str = '', simpleNameFil
         
         # Change the type of columns that are FILEHANDLEIDs as calculated before
         for col in cols:
-            for element in cols_filehandleid:
-                if col.name == element:
-                    col.columnType = 'FILEHANDLEID'
+            if col.name in cols_filehandleid:
+                col.columnType = 'FILEHANDLEID'
                     
         # If different datatypes happen while merging tables this will change the column type in the resulting dataframe
         # The following code sets it right and casts the data into its original form / form that syn.store would accept
@@ -60,12 +52,10 @@ def transferTables(syn,sourceProjId, uploadProjId, extId_Str = '', simpleNameFil
                 df_main[col.name] = [int(item) if (item!='' and item==item) else '' for item in df_main[col.name]]
             else:
                 df_main[col.name] = [item if item==item else '' for item in df_main[col.name]]
-
-        # Correcting the order of the columns while uploading
-        df_main = df_main[[col.name for col in cols]]
         
         # Updaing schema and uploading
         schema = synapseclient.Schema(name=activity_, columns=cols, parent=uploadProjId)
         table = synapseclient.Table(schema, df_main)
         table = syn.store(table)
-        table = syn.setProvenance(table.schema.id , activity = synapseclient.activity.Activity(used = all_tables[activity_]))
+        table = syn.setProvenance(table.schema.id , activity = synapseclient.activity.Activity(used = tables_dict[activity_]))
+
