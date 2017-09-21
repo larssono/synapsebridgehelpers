@@ -11,6 +11,7 @@ def copyFileIdsInBatch(syn,table_id,fileIds):
     Remove/Edit this once copyFileHandles can process requests more than 100 at once
     Change tableWithFileIds appropriately
     """
+    #TODO remove once SYNPY-540 is fixed and released
     
     fileIds = fileIds.dropna().drop_duplicates().astype(int)
     len_fIds = len(fileIds)
