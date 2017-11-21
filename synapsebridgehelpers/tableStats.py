@@ -7,7 +7,6 @@ from collections import Counter
 import matplotlib.pylab as plt
 from datetime import datetime
 
-###########################################################################################
 
 def healthCodeRecords(df, returnType = 'series'):
     """returns number of records per healthCode 
@@ -24,7 +23,6 @@ def healthCodeRecords(df, returnType = 'series'):
     except:
         print('The given dataframe does not have a column by that name')    
         
-###########################################################################################        
         
 def plotRecordsVsHealthCodes(df, nbins = 10, scale = 'linear'):
     """Plots the number of records vs the number of healthcodes that have that 
@@ -49,8 +47,6 @@ def plotRecordsVsHealthCodes(df, nbins = 10, scale = 'linear'):
     except:
         print('The given dataframe does not have the column healthcodes')
         
-###########################################################################################
-# Distribution of records over time of upload
 
 def plotRecordDistribution(df, timeline = 'M'):
     """plots records distribution according to timeline specified, options include
@@ -98,13 +94,11 @@ def plotRecordDistribution(df, timeline = 'M'):
     except:
         print('Given table does not have column uploadDate')
 
-###########################################################################################
 
-# Number of records vs Days since enrollment
 def plotRecordsVsDaysSinceEnrollment(df,stepsize = 10):
-    
-    """Plots the number of records vs days since enrollment, by normalizing the submissions per healthcode according
-    to the date they joined the study
+    """Plots the number of records vs days since enrollment, by 
+    normalizing the submissions per healthcode according to the 
+    date they joined the study
     
     Arguments:
     - df: a dataFrame containing the columns 'healthCode' and 'uploadDate'

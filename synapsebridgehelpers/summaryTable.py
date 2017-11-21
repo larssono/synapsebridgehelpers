@@ -2,20 +2,20 @@ import synapsebridgehelpers
 import synapseclient
 import pandas as pd
 
-def summaryTable(syn, projectId, columns = ['appVersion','phoneInfo','uploadDate','healthCode','externalId','dataGroups','createdOn','createdOnTimeZone','userSharingScope']):
-    """Outputs a concatenated table containing the given
-    list of columns from the given projectId. If no columns 
-    are given, then all columns are considered
-    
-    NOTE: When giving a column, note that it needs to be 
-    present in all the tables of the given Project, otherwise
-    the function will throw an error
-    
+DEFAULT_SUMMARY_COLUMNS = ['appVersion','phoneInfo','uploadDate','healthCode','externalId',
+                           'dataGroups','createdOn','createdOnTimeZone','userSharingScope']
+
+def summarizeTables(syn, projectId, columns = DEFAULT_SUMMARY_COLUMNS):
+    """Summarizes all tables in a project by fetching the same columns from each table
+    and concatenating the rows into a dataframe.
+
     Arguments:
     - syn: a Synapse client object
     - projectID: synapse ID of the project we want to summarize
-    - columns: list of columns we want in the summary table"""
-    
+    - columns: list of columns we want in the summary table.  If no columns
+    are given, then all columns are used.
+    """
+
     all_tables = synapsebridgehelpers.get_tables(syn, projectId)
     df_list = []
     for table_id in all_tables['table.id']:
