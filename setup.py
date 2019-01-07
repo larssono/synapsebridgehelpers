@@ -10,5 +10,6 @@ setup(name='synapsebridgehelpers',
       packages=['synapsebridgehelpers'],
       install_requires=[
           'synapseclient',
-          'pandas'],
+          'pandas',
+          'matplotlib'],
       zip_safe=False)
