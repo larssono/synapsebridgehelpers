@@ -1,6 +1,7 @@
 import pandas as pd
+from synapseclient.exceptions  import SynapseHTTPError
 
-def externalIds2healthCodes(syn,tables):
+def externalIds2healthCodes(syn,tables, continueOnMissingColumn=True):
     """Given a list of tables determines 
     the healthCodes that map to externalIds.
     
@@ -14,7 +15,13 @@ def externalIds2healthCodes(syn,tables):
     QUERY = 'SELECT distinct externalId, healthCode FROM %s'
     dfs = []
     for table in tables:
-        idMap = syn.tableQuery(QUERY %table).asDataFrame()
+        try:
+            idMap = syn.tableQuery(QUERY %table).asDataFrame()
+        except SynapseHTTPError as err:
+            if err.response.status_code == 400 and continueOnMissingColumn:
+                pass
+            else:
+                raise err
         dfs.append(idMap)
     idMap = pd.concat(dfs)
     return idMap.drop_duplicates().dropna()

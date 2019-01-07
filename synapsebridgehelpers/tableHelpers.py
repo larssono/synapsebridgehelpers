@@ -1,5 +1,7 @@
 import pandas as pd
 from  multiprocessing.dummy import Pool 
+from synapseclient.exceptions  import SynapseHTTPError
+
 
 def get_tables(syn, projectId, simpleNameFilters=[]):
     """Returns all the tables in a projects as a dataFrame with 
@@ -17,6 +19,7 @@ def get_tables(syn, projectId, simpleNameFilters=[]):
     tables = tables[(tables['table.name']!='parkinson-status') &(tables['table.name']!='parkinson-appVersion')]
     tables['version'] = tables['table.name'].str.extract('(.)(-v\d+)', expand=True)[1]
     names = tables['table.name'].str.extract('([ -_a-z-A-Z\d]+)(-v\d+)',expand=True)[0]
+    print(names)
     for word in simpleNameFilters:
         names = [name.replace(word,'') for name in names]
     tables['simpleName'] = names     
@@ -35,7 +38,7 @@ def find_tables_with_data(syn, tables, healthCodes):
     tables['healthCodeCounts'] = counts
     return tables
 
-def query_across_tables(syn, tables, query):
+def query_across_tables(syn, tables, query, continueOnMissingColumn=True):
     """Runs a query across a list of tables and returns a list of results
     
     param syn: a synapse object obtained through a syn.login()
@@ -43,5 +46,14 @@ def query_across_tables(syn, tables, query):
     param query: a query with a unassigne string in the from clause. E.g. "select foo from %s" 
 
     """
+    def safeQuery(query):
+        try:
+            return syn.tableQuery(query)
+        except SynapseHTTPError as err:
+            if err.response.status_code == 400 and continueOnMissingColumn:
+                return 
+            else:
+                raise err
+
     mp = Pool(8)
-    return mp.map(lambda synId: syn.tableQuery(query %synId), tables)
+    return mp.map(lambda synId: safeQuery(query %synId), tables)

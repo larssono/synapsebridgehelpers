@@ -2,7 +2,7 @@ import synapsebridgehelpers
 import synapseclient
 import pandas as pd
 
-DEFAULT_SUMMARY_COLUMNS = ['appVersion','phoneInfo','uploadDate','healthCode','externalId',
+DEFAULT_SUMMARY_COLUMNS = ['recordId', 'appVersion','phoneInfo','uploadDate','healthCode','externalId',
                            'dataGroups','createdOn','createdOnTimeZone','userSharingScope']
 
 def summarizeTables(syn, projectId, columns = DEFAULT_SUMMARY_COLUMNS):
