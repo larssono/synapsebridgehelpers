@@ -16,7 +16,8 @@ def get_tables(syn, projectId, simpleNameFilters=[]):
     tables = syn.getChildren(projectId, includeTypes=['table'])
     tables = pd.DataFrame(list(tables))
     # removing tables named 'parkinson-status' and 'parkinson-appVersion'
-    tables = tables[(tables['name']!='parkinson-status') & (tables['name']!='parkinson-appVersion')]
+    tables = tables[(tables['name'] != 'parkinson-status') &
+                    (tables['name'] != 'parkinson-appVersion')]
     tables['version'] = tables['name'].str.extract('(.)(-v\d+)', expand=True)[1]
     names = tables['name'].str.extract('([ -_a-z-A-Z\d]+)(-v\d+)', expand=True)[0]
     print(names)
