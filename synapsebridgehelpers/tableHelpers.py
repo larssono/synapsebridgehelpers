@@ -1,6 +1,6 @@
 import pandas as pd
-from  multiprocessing.dummy import Pool 
-from synapseclient.exceptions  import SynapseHTTPError
+from multiprocessing.dummy import Pool
+from synapseclient.exceptions import SynapseHTTPError
 
 
 def get_tables(syn, projectId, simpleNameFilters=[]):
@@ -35,8 +35,16 @@ def find_tables_with_data(syn, tables, healthCodes):
     number of unique healthCodes found in each table."""
     query = ("select count(distinct healthCode) from %s where healthCode in ('" +
              "','".join(healthCodes) + "')")
-    counts = [syn.tableQuery(query % synId, resultsAs='rowset').asInteger() for
-              synId in tables['id']]
+    counts = []
+    for synId in tables['id']:
+        try:
+            n = syn.tableQuery(query % synId, resultsAs='rowset').asInteger()
+        except SynapseHTTPError as err:  # Catch eror where healthCode not in table
+            if err.response.status_code == 400:
+                n = 0
+            else:
+                raise err
+        counts.append(n)
     tables['healthCodeCounts'] = counts
     return tables
 
